@@ -14,9 +14,6 @@
     th { background-color: #f2f2f2; cursor: pointer; }
     input { margin-bottom: 10px; padding: 5px; width: 200px; }
   </style>
-
-<script type="module">
-  
 </head>
 
 <body>
@@ -26,7 +23,7 @@
 <input type="text" id="search" placeholder="Suchen...">
 
 <button id="save">💾 Speichern</button>
-  
+
 <table id="table"></table>
 
 <script type="module">
@@ -34,7 +31,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔑 DEINE CONFIG HIER EINSETZEN
+// 🔑 CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqb7qjv7eTSZbKH-0-H_rKvywlSYo43xc",
   authDomain: "learning-coding-acff0.firebaseapp.com",
@@ -47,7 +44,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// CSV URL
 const csvUrl = "https://raw.githubusercontent.com/DarioLorenzon/Learning_Coding/main/personen.csv";
 
 let originalData = [];
@@ -65,7 +61,7 @@ Papa.parse(csvUrl, {
   }
 });
 
-// Tabelle erstellen
+// Tabelle
 function createTable(data) {
   const table = document.getElementById("table");
   table.innerHTML = "";
@@ -127,7 +123,7 @@ function sortTable(column) {
   createTable(currentData);
 }
 
-// 🔥 SPEICHERN BUTTON
+// Speichern
 document.getElementById("save").addEventListener("click", async () => {
   try {
     await addDoc(collection(db, "personen"), {
@@ -143,8 +139,6 @@ document.getElementById("save").addEventListener("click", async () => {
 });
 
 </script>
-
-  
 
 </body>
 </html>
