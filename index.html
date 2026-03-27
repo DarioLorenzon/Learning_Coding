@@ -25,27 +25,39 @@
 <table id="table"></table>
 
 <script>
-  const csvUrl = "https://raw.githubusercontent.com/DarioLorenzon/Learning_Coding/main/personen.csv";
+const csvUrl = "https://raw.githubusercontent.com/DarioLorenzon/Learning_Coding/main/personen.csv";
+
+let originalData = [];
+let currentData = [];
 
 Papa.parse(csvUrl, {
   download: true,
   header: true,
   complete: function(results) {
-    const data = results.data.filter(row => row.Name); // filtert leere Zeilen
-    createTable(data);
+    originalData = results.data.filter(row => row.Name);
+    currentData = [...originalData];
+    createTable(currentData);
   }
 });
 
+// Tabelle erstellen
 function createTable(data) {
   const table = document.getElementById("table");
+  table.innerHTML = "";
 
   // Header
   const headerRow = document.createElement("tr");
+
   Object.keys(data[0]).forEach(key => {
     const th = document.createElement("th");
     th.textContent = key;
+
+    // 🔥 Sortieren beim Klick
+    th.addEventListener("click", () => sortTable(key));
+
     headerRow.appendChild(th);
   });
+
   table.appendChild(headerRow);
 
   // Rows
@@ -61,7 +73,34 @@ function createTable(data) {
     table.appendChild(tr);
   });
 }
-</script>
 
+// 🔍 Suche
+document.getElementById("search").addEventListener("input", function(e) {
+  const value = e.target.value.toLowerCase();
+
+  currentData = originalData.filter(row =>
+    Object.values(row).some(val =>
+      String(val).toLowerCase().includes(value)
+    )
+  );
+
+  createTable(currentData);
+});
+
+// 🔃 Sortieren
+let sortDirection = 1;
+
+function sortTable(column) {
+  currentData.sort((a, b) => {
+    if (a[column] < b[column]) return -1 * sortDirection;
+    if (a[column] > b[column]) return 1 * sortDirection;
+    return 0;
+  });
+
+  sortDirection *= -1;
+  createTable(currentData);
+}
+</script>
+  
 </body>
 </html>
