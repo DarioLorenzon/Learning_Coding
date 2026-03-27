@@ -62,22 +62,29 @@ function createTable(data) {
 
   // Rows
   data.forEach(row => {
-    const tr = document.createElement("tr");
+  const tr = document.createElement("tr");
 
-    Object.values(row).forEach((value, index) => {
+  const keys = Object.keys(row);
+
+  keys.forEach((key, index) => {
     const td = document.createElement("td");
-    td.textContent = value;
+    td.textContent = row[key];
 
+    // editierbar
     td.contentEditable = true;
 
+    // Änderung speichern
     td.addEventListener("input", () => {
-      const column = Object.keys(row)[index];
-      row[column] = td.textContent;
+      row[key] = td.textContent;
+    });
+
+    tr.appendChild(td);
   });
 
-  tr.appendChild(td);
+  table.appendChild(tr);
 });
-}
+
+  
 
 // 🔍 Suche
 document.getElementById("search").addEventListener("input", function(e) {
