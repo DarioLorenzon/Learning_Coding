@@ -23,6 +23,7 @@
 <input type="text" id="search" placeholder="Suchen...">
 
 <button id="save">💾 Speichern</button>
+<button id="load">📥 Laden</button>
 
 <table id="table"></table>
 
@@ -30,6 +31,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // 🔑 CONFIG
 const firebaseConfig = {
@@ -135,6 +137,37 @@ document.getElementById("save").addEventListener("click", async () => {
   } catch (e) {
     console.error(e);
     alert("Fehler beim Speichern");
+  }
+});
+
+// 🔥 LADEN BUTTON
+document.getElementById("load").addEventListener("click", async () => {
+  try {
+    const q = query(
+      collection(db, "personen"),
+      orderBy("created", "desc"),
+      limit(1)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      alert("Keine Daten gefunden");
+      return;
+    }
+
+    const doc = querySnapshot.docs[0];
+    const loadedData = doc.data().data;
+
+    originalData = loadedData;
+    currentData = [...loadedData];
+
+    createTable(currentData);
+
+    alert("Daten geladen!");
+  } catch (e) {
+    console.error(e);
+    alert("Fehler beim Laden");
   }
 });
 
