@@ -157,7 +157,7 @@ document.getElementById("load").addEventListener("click", async () => {
       const d = doc.data();
 
       // 🔥 WICHTIG: created ist aktuell ein Datum → umwandeln
-      const time = new Date(d.created).getTime();
+      const time = d.created?.seconds || 0;
 
       if (time > latestTime) {
         latestTime = time;
