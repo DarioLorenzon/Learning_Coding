@@ -64,14 +64,19 @@ function createTable(data) {
   data.forEach(row => {
     const tr = document.createElement("tr");
 
-    Object.values(row).forEach(value => {
-      const td = document.createElement("td");
-      td.textContent = value;
-      tr.appendChild(td);
-    });
+    Object.values(row).forEach((value, index) => {
+    const td = document.createElement("td");
+    td.textContent = value;
 
-    table.appendChild(tr);
+    td.contentEditable = true;
+
+    td.addEventListener("input", () => {
+      const column = Object.keys(row)[index];
+      row[column] = td.textContent;
   });
+
+  tr.appendChild(td);
+});
 }
 
 // 🔍 Suche
