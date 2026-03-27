@@ -143,21 +143,34 @@ document.getElementById("save").addEventListener("click", async () => {
 // 🔥 LADEN BUTTON
 document.getElementById("load").addEventListener("click", async () => {
   try {
-    const q = query(
-      collection(db, "personen"),
-      orderBy("created", "desc"),
-      limit(1)
-    );
-
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(collection(db, "personen"));
 
     if (querySnapshot.empty) {
       alert("Keine Daten gefunden");
       return;
     }
 
-    const doc = querySnapshot.docs[0];
-    const loadedData = doc.data().data;
+    let latestDoc = null;
+    let latestTime = 0;
+
+    querySnapshot.forEach(doc => {
+      const d = doc.data();
+
+      // 🔥 WICHTIG: created ist aktuell ein Datum → umwandeln
+      const time = new Date(d.created).getTime();
+
+      if (time > latestTime) {
+        latestTime = time;
+        latestDoc = d;
+      }
+    });
+
+    if (!latestDoc) {
+      alert("Keine gültigen Daten");
+      return;
+    }
+
+    const loadedData = latestDoc.data;
 
     originalData = loadedData;
     currentData = [...loadedData];
