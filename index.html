@@ -2,7 +2,7 @@
 <html lang="de-CH">
 <head>
   <meta charset="UTF-8">
-  <title>CSV Anzeige</title>
+  <title>Personenliste</title>
 
   <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -13,6 +13,7 @@
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; cursor: pointer; }
     input { margin-bottom: 10px; padding: 5px; width: 200px; }
+    button { margin-left: 5px; padding: 6px 10px; }
   </style>
 </head>
 
@@ -21,7 +22,6 @@
 <h2>Personenliste</h2>
 
 <input type="text" id="search" placeholder="Suchen...">
-
 <button id="save">💾 Speichern</button>
 <button id="load">📥 Laden</button>
 
@@ -30,10 +30,9 @@
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔑 CONFIG
+// 🔑 Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAqb7qjv7eTSZbKH-0-H_rKvywlSYo43xc",
   authDomain: "learning-coding-acff0.firebaseapp.com",
@@ -46,7 +45,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 🔗 CSV URL
 const csvUrl = "https://raw.githubusercontent.com/DarioLorenzon/Learning_Coding/main/personen.csv";
+
+// 🔥 FIX: feste Spaltenreihenfolge
+const columns = ["Name", "Vorname", "Geschlecht", "Alter", "Email", "Tel"];
 
 let originalData = [];
 let currentData = [];
@@ -63,16 +66,17 @@ Papa.parse(csvUrl, {
   }
 });
 
-// Tabelle
+// Tabelle erstellen
 function createTable(data) {
   const table = document.getElementById("table");
   table.innerHTML = "";
 
   if (!data || data.length === 0) return;
 
+  // Header
   const headerRow = document.createElement("tr");
 
-  Object.keys(data[0]).forEach(key => {
+  columns.forEach(key => {
     const th = document.createElement("th");
     th.textContent = key;
     th.addEventListener("click", () => sortTable(key));
@@ -81,12 +85,14 @@ function createTable(data) {
 
   table.appendChild(headerRow);
 
+  // Rows
   data.forEach(row => {
     const tr = document.createElement("tr");
 
-    Object.keys(row).forEach(key => {
+    columns.forEach(key => {
       const td = document.createElement("td");
-      td.textContent = row[key];
+      td.textContent = row[key] || "";
+
       td.contentEditable = true;
 
       td.addEventListener("input", () => {
@@ -105,8 +111,8 @@ document.getElementById("search").addEventListener("input", function(e) {
   const value = e.target.value.toLowerCase();
 
   currentData = originalData.filter(row =>
-    Object.values(row).some(val =>
-      String(val).toLowerCase().includes(value)
+    columns.some(col =>
+      String(row[col] || "").toLowerCase().includes(value)
     )
   );
 
@@ -125,11 +131,11 @@ function sortTable(column) {
   createTable(currentData);
 }
 
-// Speichern
+// 💾 Speichern
 document.getElementById("save").addEventListener("click", async () => {
   try {
     await addDoc(collection(db, "personen"), {
-      created: new Date(),
+      created: Date.now(),
       data: currentData
     });
 
@@ -140,7 +146,7 @@ document.getElementById("save").addEventListener("click", async () => {
   }
 });
 
-// 🔥 LADEN BUTTON
+// 📥 Laden
 document.getElementById("load").addEventListener("click", async () => {
   try {
     const querySnapshot = await getDocs(collection(db, "personen"));
@@ -156,11 +162,8 @@ document.getElementById("load").addEventListener("click", async () => {
     querySnapshot.forEach(doc => {
       const d = doc.data();
 
-      // 🔥 WICHTIG: created ist aktuell ein Datum → umwandeln
-      const time = d.created?.seconds || 0;
-
-      if (time > latestTime) {
-        latestTime = time;
+      if (d.created > latestTime) {
+        latestTime = d.created;
         latestDoc = d;
       }
     });
