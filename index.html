@@ -4,24 +4,24 @@
   <meta charset="UTF-8">
   <title>CSV Anzeige</title>
 
-  <!-- PapaParse (CSV Parser) -->
+  <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
     body { font-family: Arial; padding: 20px; }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
+    th { background-color: #f2f2f2; cursor: pointer; }
+    input { margin-bottom: 10px; padding: 5px; width: 200px; }
   </style>
 </head>
 
 <body>
 
 <h2>Personenliste</h2>
-  
-    <input type="text" id="search" placeholder="Suchen..." 
-    style="margin-bottom:10px; padding:5px; width:200px;">
- 
+
+<input type="text" id="search" placeholder="Suchen...">
+
 <table id="table"></table>
 
 <script>
@@ -29,13 +29,18 @@ const csvUrl = "https://raw.githubusercontent.com/DarioLorenzon/Learning_Coding/
 
 let originalData = [];
 let currentData = [];
+let sortDirection = 1;
 
+// CSV laden
 Papa.parse(csvUrl, {
   download: true,
   header: true,
   complete: function(results) {
+    console.log("CSV geladen:", results.data);
+
     originalData = results.data.filter(row => row.Name);
     currentData = [...originalData];
+
     createTable(currentData);
   }
 });
@@ -45,6 +50,8 @@ function createTable(data) {
   const table = document.getElementById("table");
   table.innerHTML = "";
 
+  if (!data || data.length === 0) return;
+
   // Header
   const headerRow = document.createElement("tr");
 
@@ -52,7 +59,6 @@ function createTable(data) {
     const th = document.createElement("th");
     th.textContent = key;
 
-    // 🔥 Sortieren beim Klick
     th.addEventListener("click", () => sortTable(key));
 
     headerRow.appendChild(th);
@@ -62,31 +68,30 @@ function createTable(data) {
 
   // Rows
   data.forEach(row => {
-  const tr = document.createElement("tr");
+    const tr = document.createElement("tr");
 
-  const keys = Object.keys(row);
+    const keys = Object.keys(row);
 
-  keys.forEach((key, index) => {
-    const td = document.createElement("td");
-    td.textContent = row[key];
+    keys.forEach(key => {
+      const td = document.createElement("td");
+      td.textContent = row[key];
 
-    // editierbar
-    td.contentEditable = true;
+      // editierbar
+      td.contentEditable = true;
 
-    // Änderung speichern
-    td.addEventListener("input", () => {
-      row[key] = td.textContent;
+      // Änderung speichern
+      td.addEventListener("input", () => {
+        row[key] = td.textContent;
+      });
+
+      tr.appendChild(td);
     });
 
-    tr.appendChild(td);
+    table.appendChild(tr);
   });
+}
 
-  table.appendChild(tr);
-});
-
-  
-
-// 🔍 Suche
+// Suche
 document.getElementById("search").addEventListener("input", function(e) {
   const value = e.target.value.toLowerCase();
 
@@ -99,9 +104,7 @@ document.getElementById("search").addEventListener("input", function(e) {
   createTable(currentData);
 });
 
-// 🔃 Sortieren
-let sortDirection = 1;
-
+// Sortieren
 function sortTable(column) {
   currentData.sort((a, b) => {
     if (a[column] < b[column]) return -1 * sortDirection;
@@ -113,6 +116,6 @@ function sortTable(column) {
   createTable(currentData);
 }
 </script>
-  
+
 </body>
 </html>
