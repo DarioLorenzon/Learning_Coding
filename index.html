@@ -14,6 +14,9 @@
     th { background-color: #f2f2f2; cursor: pointer; }
     input { margin-bottom: 10px; padding: 5px; width: 200px; }
   </style>
+
+<script type="module">
+  
 </head>
 
 <body>
@@ -22,9 +25,29 @@
 
 <input type="text" id="search" placeholder="Suchen...">
 
+<button id="save">💾 Speichern</button>
+  
 <table id="table"></table>
 
-<script>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔑 DEINE CONFIG HIER EINSETZEN
+const firebaseConfig = {
+  apiKey: "AIzaSyAqb7qjv7eTSZbKH-0-H_rKvywlSYo43xc",
+  authDomain: "learning-coding-acff0.firebaseapp.com",
+  projectId: "learning-coding-acff0",
+  storageBucket: "learning-coding-acff0.firebasestorage.app",
+  messagingSenderId: "437889225622",
+  appId: "1:437889225622:web:29f7c93bdf0d7be85403b7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// CSV URL
 const csvUrl = "https://raw.githubusercontent.com/DarioLorenzon/Learning_Coding/main/personen.csv";
 
 let originalData = [];
@@ -36,11 +59,8 @@ Papa.parse(csvUrl, {
   download: true,
   header: true,
   complete: function(results) {
-    console.log("CSV geladen:", results.data);
-
     originalData = results.data.filter(row => row.Name);
     currentData = [...originalData];
-
     createTable(currentData);
   }
 });
@@ -52,34 +72,25 @@ function createTable(data) {
 
   if (!data || data.length === 0) return;
 
-  // Header
   const headerRow = document.createElement("tr");
 
   Object.keys(data[0]).forEach(key => {
     const th = document.createElement("th");
     th.textContent = key;
-
     th.addEventListener("click", () => sortTable(key));
-
     headerRow.appendChild(th);
   });
 
   table.appendChild(headerRow);
 
-  // Rows
   data.forEach(row => {
     const tr = document.createElement("tr");
 
-    const keys = Object.keys(row);
-
-    keys.forEach(key => {
+    Object.keys(row).forEach(key => {
       const td = document.createElement("td");
       td.textContent = row[key];
-
-      // editierbar
       td.contentEditable = true;
 
-      // Änderung speichern
       td.addEventListener("input", () => {
         row[key] = td.textContent;
       });
@@ -115,7 +126,25 @@ function sortTable(column) {
   sortDirection *= -1;
   createTable(currentData);
 }
+
+// 🔥 SPEICHERN BUTTON
+document.getElementById("save").addEventListener("click", async () => {
+  try {
+    await addDoc(collection(db, "personen"), {
+      created: new Date(),
+      data: currentData
+    });
+
+    alert("Gespeichert!");
+  } catch (e) {
+    console.error(e);
+    alert("Fehler beim Speichern");
+  }
+});
+
 </script>
+
+  
 
 </body>
 </html>
